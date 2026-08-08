@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEARDOWN · humor x-ray</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Exo+2:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#04060a;
+    --panel:#0a0f18;
+    --panel-2:#070b12;
+    --line:rgba(0,229,255,.14);
+    --cyan:#00e5ff;
+    --magenta:#ff2fd0;
+    --amber:#ffb000;
+    --green:#22ffa7;
+    --text:#c9d6e2;
+    --muted:#6a7a8c;
+    --mono:'Share Tech Mono',monospace;
+    --head:'Orbitron',sans-serif;
+    --body:'Exo 2',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    min-height:100vh;
+    background-image:
+      linear-gradient(rgba(0,229,255,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,229,255,.035) 1px,transparent 1px);
+    background-size:44px 44px;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:2;
+    background:repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px);
+    mix-blend-mode:overlay;opacity:.5;
+  }
+  .wrap{max-width:820px;margin:0 auto;padding:44px 20px 90px;position:relative;z-index:3;}
+
+  header{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:30px;}
+  .tag{font-family:var(--mono);font-size:11px;letter-spacing:.32em;color:var(--cyan);text-transform:uppercase;opacity:.85;}
+  h1{font-family:var(--head);font-weight:900;font-size:clamp(38px,9vw,72px);letter-spacing:.06em;margin:6px 0 8px;
+     color:#eaf6ff;text-shadow:0 0 22px rgba(0,229,255,.28);}
+  .sub{font-family:var(--body);font-size:15px;color:var(--muted);max-width:560px;line-height:1.5;}
+  .sub b{color:var(--magenta);font-weight:600;}
+
+  .io{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);
+      border-radius:4px;padding:20px;position:relative;}
+  .io::before{content:"";position:absolute;top:8px;left:8px;width:9px;height:9px;
+      border-top:1px solid var(--cyan);border-left:1px solid var(--cyan);opacity:.6;}
+  .io::after{content:"";position:absolute;bottom:8px;right:8px;width:9px;height:9px;
+      border-bottom:1px solid var(--cyan);border-right:1px solid var(--cyan);opacity:.6;}
+  label.lbl{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.22em;
+      color:var(--muted);text-transform:uppercase;margin-bottom:9px;}
+  textarea{width:100%;min-height:120px;background:#020407;border:1px solid rgba(0,229,255,.16);
+      border-radius:3px;color:var(--text);font-family:var(--body);font-size:16px;line-height:1.5;
+      padding:14px;resize:vertical;outline:none;transition:border-color .18s;}
+  textarea:focus{border-color:var(--cyan);}
+  textarea::placeholder{color:#3f4c5a;}
+
+  .row{display:flex;gap:12px;align-items:center;margin-top:14px;flex-wrap:wrap;}
+  .file-btn{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+      color:var(--cyan);background:transparent;border:1px dashed rgba(0,229,255,.35);
+      border-radius:3px;padding:11px 15px;cursor:pointer;transition:.18s;}
+  .file-btn:hover{background:rgba(0,229,255,.07);border-style:solid;}
+  input[type=file]{display:none;}
+  .fname{font-family:var(--mono);font-size:12px;color:var(--muted);}
+  .clearimg{color:var(--magenta);cursor:pointer;font-family:var(--mono);font-size:12px;text-decoration:underline;}
+  .preview{margin-top:12px;display:none;}
+  .preview img{max-height:180px;max-width:100%;border:1px solid var(--line);border-radius:3px;}
+
+  .go{margin-top:18px;width:100%;font-family:var(--head);font-weight:700;font-size:16px;letter-spacing:.18em;
+      text-transform:uppercase;color:#020407;background:var(--cyan);border:none;border-radius:3px;
+      padding:15px;cursor:pointer;transition:.18s;box-shadow:0 0 18px rgba(0,229,255,.32);}
+  .go:hover{background:#5cf0ff;box-shadow:0 0 26px rgba(0,229,255,.5);}
+  .go:disabled{opacity:.4;cursor:wait;box-shadow:none;}
+
+  .status{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--amber);
+      text-transform:uppercase;margin-top:16px;min-height:16px;text-align:center;}
+  .status.err{color:#ff5470;}
+  .scan{display:inline-block;}
+  .scan::after{content:"▮";animation:blink 1s steps(2) infinite;margin-left:4px;}
+  @keyframes blink{50%{opacity:0;}}
+
+  #out{margin-top:34px;display:none;}
+  .card{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);
+      border-left:3px solid var(--cyan);border-radius:4px;padding:18px 20px;margin-bottom:14px;
+      animation:rise .4s ease both;}
+  @keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+  .card .k{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+      color:var(--cyan);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+  .card .v{font-size:16.5px;line-height:1.6;color:var(--text);}
+  .card.mech{border-left-color:var(--cyan);}
+  .card.mech .k{color:var(--cyan);}
+  .card.setup{border-left-color:var(--muted);}
+  .card.setup .k{color:#9fb0c0;}
+  .card.punch{border-left-color:var(--amber);}
+  .card.punch .k{color:var(--amber);}
+  .card.msg{border-left-color:var(--magenta);}
+  .card.msg .k{color:var(--magenta);}
+  .card.struct{border-left-color:var(--green);}
+  .card.struct .k{color:var(--green);}
+  .card.struct .v{font-family:var(--mono);font-size:15px;line-height:1.7;color:#bfe9d6;}
+  .mech .v b{color:var(--cyan);font-weight:600;}
+
+  .newjoke{background:linear-gradient(180deg,rgba(0,229,255,.06),rgba(255,47,208,.05));
+      border:1px solid rgba(0,229,255,.4);border-left:3px solid var(--cyan);border-radius:4px;
+      padding:22px;margin-top:20px;position:relative;animation:rise .4s .1s ease both;}
+  .newjoke .k{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;
+      color:var(--magenta);margin-bottom:12px;}
+  .newjoke .joke{font-family:var(--body);font-size:21px;line-height:1.5;color:#f2f8ff;font-weight:400;}
+  .newjoke .note{margin-top:14px;font-size:13.5px;color:var(--muted);line-height:1.5;font-style:italic;}
+  .copy{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+      color:var(--cyan);background:transparent;border:1px solid rgba(0,229,255,.3);border-radius:3px;
+      padding:6px 11px;cursor:pointer;transition:.15s;}
+  .copy:hover{background:rgba(0,229,255,.1);}
+
+  footer{margin-top:44px;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.18em;
+      color:#33404d;text-transform:uppercase;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="tag">GF · Humor Instrument</div>
+    <h1>TEARDOWN</h1>
+    <div class="sub">An x-ray for jokes. Paste or upload a joke, meme, or cartoon — get the mechanism, the setup, the punchline, the message, and the <b>reusable structure</b>. Then a new joke built on the same bones.</div>
+  </header>
+
+  <div class="io">
+    <label class="lbl">Input · paste text or upload an image</label>
+    <textarea id="src" placeholder="Paste a joke, a meme caption, a cartoon's text… or upload an image below."></textarea>
+    <div class="row">
+      <button class="file-btn" id="pick">▲ Upload image</button>
+      <input type="file" id="file" accept="image/*">
+      <span class="fname" id="fname"></span>
+      <span class="clearimg" id="clearimg" style="display:none">clear</span>
+    </div>
+    <div class="preview" id="preview"><img id="pimg" alt="upload preview"></div>
+    <button class="go" id="go">Run teardown</button>
+    <div class="status" id="status"></div>
+  </div>
+
+  <div id="out"></div>
+
+  <footer>Quirky Flash Chronicles · Gravificer System</footer>
+</div>
+
+<script>
+const WORKER = 'https://gravificer-proxy.mvphillips.workers.dev/';
+const MODEL = 'claude-sonnet-4-6';
+
+let imageData = null;
+let mediaType = null;
+
+const $ = id => document.getElementById(id);
+const srcEl = $('src'), statusEl = $('status'), outEl = $('out'), goEl = $('go');
+
+$('pick').addEventListener('click', () => $('file').click());
+$('clearimg').addEventListener('click', clearImage);
+
+$('file').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  mediaType = f.type || 'image/png';
+  const reader = new FileReader();
+  reader.onload = () => {
+    imageData = reader.result.split(',')[1];
+    $('pimg').src = reader.result;
+    $('preview').style.display = 'block';
+    $('fname').textContent = f.name;
+    $('clearimg').style.display = 'inline';
+  };
+  reader.readAsDataURL(f);
+});
+
+function clearImage(){
+  imageData = null; mediaType = null;
+  $('file').value = '';
+  $('preview').style.display = 'none';
+  $('fname').textContent = '';
+  $('clearimg').style.display = 'none';
+}
+
+const INSTRUCTION = `You are a humor analyst. Take apart the joke, meme, or cartoon provided and reveal how it works — precisely, in plain language, no fluff.
+
+Identify the comic mechanism by name (e.g. incongruity, misdirection, benign violation, rule of three, exaggeration, subversion of expectation, callback, double meaning / pun, malaphor, anti-humor, observational, self-deprecation, irony, absurdism, act-out, comparison, escalation). Name the single primary mechanism, plus a secondary one only if it genuinely drives the laugh.
+
+Then abstract the STRUCTURE into a content-neutral, reusable template — the shape of the joke with the specifics stripped out, so it can be refilled with new material. Make it concrete enough to actually build from.
+
+Then write ONE new, original joke that runs on that exact structure — different subject, same bones. Keep it tight. Land the punchline in the final words. Do not reuse the original's topic.
+
+If the piece has no real punchline (e.g. it's observational or a one-panel image gag), say so honestly in that field rather than inventing one. If it carries no message/target, say so.
+
+Respond with ONLY valid JSON, no markdown, no preamble, in exactly this shape:
+{
+  "mechanism": "primary mechanism name (+ secondary if any)",
+  "how_it_works": "1-2 sentences on why the laugh lands",
+  "setup": "the setup / premise as it exists in the piece",
+  "punchline": "the punchline, or 'None — this is a [type] gag with no distinct punchline' if there isn't one",
+  "message": "the underlying point, target, or truth it's poking at — or 'None — pure play, no message' if it's just for the laugh",
+  "structure": "the reusable, content-neutral template of this joke's shape",
+  "new_joke": "a new original joke built on that structure",
+  "new_joke_note": "one line mapping the new joke back to the structure"
+}`;
+
+async function run(){
+  const text = srcEl.value.trim();
+  if (!text && !imageData){
+    setStatus('Paste some text or upload an image first.', true);
+    return;
+  }
+  goEl.disabled = true;
+  outEl.style.display = 'none';
+  outEl.innerHTML = '';
+  setStatus('<span class="scan">Scanning the mechanism</span>');
+
+  let content;
+  if (imageData){
+    const extra = text ? `\n\nExtra context from the user: ${text}` : '';
+    content = [
+      { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageData } },
+      { type: 'text', text: INSTRUCTION + '\n\nAnalyze the joke/meme/cartoon in the image above.' + extra }
+    ];
+  } else {
+    content = INSTRUCTION + '\n\nHere is the joke/meme/cartoon text:\n"""' + text + '"""';
+  }
+
+  try {
+    const res = await fetch(WORKER, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 2000,
+        messages: [{ role: 'user', content }]
+      })
+    });
+    if (!res.ok) throw new Error('Worker returned ' + res.status);
+    const data = await res.json();
+    const raw = (data.content || [])
+      .filter(b => b.type === 'text')
+      .map(b => b.text).join('\n').trim();
+    const parsed = parseJSON(raw);
+    if (!parsed) throw new Error('Could not parse the response.');
+    render(parsed);
+    setStatus('');
+  } catch (err){
+    setStatus('Error: ' + err.message + ' — check the Worker or try again.', true);
+  } finally {
+    goEl.disabled = false;
+  }
+}
+
+function parseJSON(raw){
+  let s = raw.replace(/```json/gi,'').replace(/```/g,'').trim();
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a === -1 || b === -1) return null;
+  try { return JSON.parse(s.slice(a, b + 1)); }
+  catch { return null; }
+}
+
+function esc(t){ const d = document.createElement('div'); d.textContent = t == null ? '' : t; return d.innerHTML; }
+function isNone(t){ return t && /^none\b/i.test(t.trim()); }
+
+function render(d){
+  let html = '';
+  html += card('mech','Mechanism',
+    `<b>${esc(d.mechanism)}</b><br><span style="color:var(--muted);font-size:15px">${esc(d.how_it_works)}</span>`);
+  html += card('setup','Setup', esc(d.setup));
+  if (d.punchline && !isNone(d.punchline)) html += card('punch','Punchline', esc(d.punchline));
+  else if (d.punchline) html += card('punch','Punchline', `<span style="color:var(--muted)">${esc(d.punchline)}</span>`);
+  if (d.message && !isNone(d.message)) html += card('msg','Message', esc(d.message));
+  else if (d.message) html += card('msg','Message', `<span style="color:var(--muted)">${esc(d.message)}</span>`);
+  html += card('struct','Reusable structure', esc(d.structure));
+
+  html += `<div class="newjoke">
+    <div class="k">▶ Next move · new joke, same bones <button class="copy" id="cp">Copy</button></div>
+    <div class="joke" id="njoke">${esc(d.new_joke)}</div>
+    ${d.new_joke_note ? `<div class="note">${esc(d.new_joke_note)}</div>` : ''}
+  </div>`;
+
+  outEl.innerHTML = html;
+  outEl.style.display = 'block';
+  const cp = $('cp');
+  if (cp) cp.addEventListener('click', () => {
+    navigator.clipboard.writeText(d.new_joke || '').then(() => {
+      cp.textContent = 'Copied'; setTimeout(() => cp.textContent = 'Copy', 1400);
+    });
+  });
+  outEl.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function card(cls, k, v){
+  return `<div class="card ${cls}"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+}
+
+function setStatus(msg, isErr){
+  statusEl.innerHTML = msg;
+  statusEl.className = 'status' + (isErr ? ' err' : '');
+}
+
+goEl.addEventListener('click', run);
+srcEl.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') run();
+});
+</script>
+</body>
+</html>
