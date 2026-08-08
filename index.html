@@ -42,12 +42,24 @@
   }
   .wrap{max-width:820px;margin:0 auto;padding:44px 20px 90px;position:relative;z-index:3;}
 
-  header{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:30px;}
+  header{border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:24px;}
   .tag{font-family:var(--mono);font-size:11px;letter-spacing:.32em;color:var(--cyan);text-transform:uppercase;opacity:.85;}
   h1{font-family:var(--head);font-weight:900;font-size:clamp(38px,9vw,72px);letter-spacing:.06em;margin:6px 0 8px;
      color:#eaf6ff;text-shadow:0 0 22px rgba(0,229,255,.28);}
   .sub{font-family:var(--body);font-size:15px;color:var(--muted);max-width:560px;line-height:1.5;}
   .sub b{color:var(--magenta);font-weight:600;}
+
+  details.filters{margin:0 0 26px;border:1px solid var(--line);border-radius:4px;background:var(--panel-2);}
+  details.filters summary{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+      color:var(--green);cursor:pointer;padding:13px 16px;list-style:none;outline:none;}
+  details.filters summary::-webkit-details-marker{display:none;}
+  details.filters summary::before{content:"▸ ";color:var(--green);}
+  details.filters[open] summary::before{content:"▾ ";}
+  .flist{padding:4px 16px 16px;display:grid;gap:10px;}
+  .flist .f{border-left:2px solid rgba(34,255,167,.35);padding-left:12px;}
+  .flist .fn{font-family:var(--mono);font-size:12px;color:var(--green);letter-spacing:.08em;}
+  .flist .fd{font-size:14px;color:var(--text);line-height:1.45;}
+  .flist .fx{font-size:13px;color:var(--muted);font-style:italic;}
 
   .io{background:linear-gradient(180deg,var(--panel),var(--panel-2));border:1px solid var(--line);
       border-radius:4px;padding:20px;position:relative;}
@@ -74,7 +86,13 @@
   .preview{margin-top:12px;display:none;}
   .preview img{max-height:180px;max-width:100%;border:1px solid var(--line);border-radius:3px;}
 
-  .go{margin-top:18px;width:100%;font-family:var(--head);font-weight:700;font-size:16px;letter-spacing:.18em;
+  .rebuild-row{margin-top:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .rebuild-row label{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;}
+  select{background:#020407;color:var(--cyan);border:1px solid rgba(0,229,255,.3);border-radius:3px;
+      font-family:var(--mono);font-size:13px;padding:9px 11px;outline:none;cursor:pointer;}
+  select:focus{border-color:var(--cyan);}
+
+  .go{margin-top:16px;width:100%;font-family:var(--head);font-weight:700;font-size:16px;letter-spacing:.18em;
       text-transform:uppercase;color:#020407;background:var(--cyan);border:none;border-radius:3px;
       padding:15px;cursor:pointer;transition:.18s;box-shadow:0 0 18px rgba(0,229,255,.32);}
   .go:hover{background:#5cf0ff;box-shadow:0 0 26px rgba(0,229,255,.5);}
@@ -93,10 +111,10 @@
       animation:rise .4s ease both;}
   @keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
   .card .k{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;
-      color:var(--cyan);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
+      color:var(--cyan);margin-bottom:8px;}
   .card .v{font-size:16.5px;line-height:1.6;color:var(--text);}
-  .card.mech{border-left-color:var(--cyan);}
-  .card.mech .k{color:var(--cyan);}
+  .card.filter{border-left-color:var(--cyan);}
+  .card.filter .k{color:var(--cyan);}
   .card.setup{border-left-color:var(--muted);}
   .card.setup .k{color:#9fb0c0;}
   .card.punch{border-left-color:var(--amber);}
@@ -106,19 +124,28 @@
   .card.struct{border-left-color:var(--green);}
   .card.struct .k{color:var(--green);}
   .card.struct .v{font-family:var(--mono);font-size:15px;line-height:1.7;color:#bfe9d6;}
-  .mech .v b{color:var(--cyan);font-weight:600;}
+  .filter .v b{color:var(--cyan);font-weight:600;}
 
   .newjoke{background:linear-gradient(180deg,rgba(0,229,255,.06),rgba(255,47,208,.05));
       border:1px solid rgba(0,229,255,.4);border-left:3px solid var(--cyan);border-radius:4px;
       padding:22px;margin-top:20px;position:relative;animation:rise .4s .1s ease both;}
   .newjoke .k{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;
-      color:var(--magenta);margin-bottom:12px;}
+      color:var(--magenta);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
   .newjoke .joke{font-family:var(--body);font-size:21px;line-height:1.5;color:#f2f8ff;font-weight:400;}
-  .newjoke .note{margin-top:14px;font-size:13.5px;color:var(--muted);line-height:1.5;font-style:italic;}
+  .newjoke .njf{margin-top:10px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);}
+  .newjoke .note{margin-top:8px;font-size:13.5px;color:var(--muted);line-height:1.5;font-style:italic;}
   .copy{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
       color:var(--cyan);background:transparent;border:1px solid rgba(0,229,255,.3);border-radius:3px;
-      padding:6px 11px;cursor:pointer;transition:.15s;}
+      padding:6px 11px;cursor:pointer;transition:.15s;white-space:nowrap;}
   .copy:hover{background:rgba(0,229,255,.1);}
+
+  .controls{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;}
+  .controls button{flex:1;min-width:180px;font-family:var(--head);font-weight:700;font-size:13px;
+      letter-spacing:.16em;text-transform:uppercase;padding:14px;border-radius:3px;cursor:pointer;transition:.18s;}
+  .btn-again{color:var(--green);background:transparent;border:1px solid rgba(34,255,167,.5);}
+  .btn-again:hover{background:rgba(34,255,167,.1);box-shadow:0 0 16px rgba(34,255,167,.25);}
+  .btn-new{color:var(--magenta);background:transparent;border:1px solid rgba(255,47,208,.5);}
+  .btn-new:hover{background:rgba(255,47,208,.1);box-shadow:0 0 16px rgba(255,47,208,.25);}
 
   footer{margin-top:44px;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.18em;
       color:#33404d;text-transform:uppercase;}
@@ -129,8 +156,13 @@
   <header>
     <div class="tag">GF · Humor Instrument</div>
     <h1>TEARDOWN</h1>
-    <div class="sub">An x-ray for jokes. Paste or upload a joke, meme, or cartoon — get the mechanism, the setup, the punchline, the message, and the <b>reusable structure</b>. Then a new joke built on the same bones.</div>
+    <div class="sub">An x-ray for jokes. Paste or upload a joke, meme, or cartoon — get the filter, the setup, the punchline, the message, and the <b>reusable structure</b>. Then a new joke built on the same bones.</div>
   </header>
+
+  <details class="filters">
+    <summary>The 11 filters</summary>
+    <div class="flist" id="flist"></div>
+  </details>
 
   <div class="io">
     <label class="lbl">Input · paste text or upload an image</label>
@@ -142,6 +174,14 @@
       <span class="clearimg" id="clearimg" style="display:none">clear</span>
     </div>
     <div class="preview" id="preview"><img id="pimg" alt="upload preview"></div>
+
+    <div class="rebuild-row">
+      <label for="rebuild">Rebuild new joke as</label>
+      <select id="rebuild">
+        <option value="same">Same mechanism (replicate original)</option>
+      </select>
+    </div>
+
     <button class="go" id="go">Run teardown</button>
     <div class="status" id="status"></div>
   </div>
@@ -155,11 +195,38 @@
 const WORKER = 'https://gravificer-proxy.mvphillips.workers.dev/';
 const MODEL = 'claude-sonnet-4-6';
 
+const FILTERS = [
+  ["Irony","Intended meaning is the exact opposite of the literal meaning.","Alcoholic father disappointed in pothead son"],
+  ["Character","A comedic character acting on his or her traits.","Raccoon leaders call for loosening of garbage-can lids"],
+  ["Reference","Connect something in real life to something from the reader's own life.","FDA urges America to check out weird-looking potato"],
+  ["Shock","Sex, violence, death, drugs, swearing, bathroom or gross-out humor.","HOLY SHIT. Man walks on fucking moon"],
+  ["Hyperbole","Exaggerate to an absurd, impossible extreme that breaks reality.","Area woman finally uploads all 12 million pictures of her vacation to Europe on Facebook"],
+  ["Parody","Mimic the thing you're parodying as closely as possible.","Veteran cop gets along great with rookie partner"],
+  ["Wordplay","Puns, rhyming, double entendre, using words other than their primary function.","Robot charged with battery"],
+  ["Analogy","Comparison of two disparate things.","Al Gore places infant son in rocket to escape dying planet"],
+  ["Madcap","Silly, crazy, nonsensical — full wacky town.","Hamster thrown from remote-control monster truck"],
+  ["Metahumor","Humor that makes fun of other humor or the idea of humor.","Comedians no longer able to write jokes longer than 140 characters"],
+  ["Misplaced Focus","Purposefully put attention on the wrong thing.","Missing boy scout earns publicity badge"]
+];
+
 let imageData = null;
 let mediaType = null;
 
 const $ = id => document.getElementById(id);
-const srcEl = $('src'), statusEl = $('status'), outEl = $('out'), goEl = $('go');
+const srcEl = $('src'), statusEl = $('status'), outEl = $('out'), goEl = $('go'), rebuildEl = $('rebuild');
+
+(function initFilters(){
+  const flist = $('flist');
+  FILTERS.forEach(([name,def,ex]) => {
+    const div = document.createElement('div');
+    div.className = 'f';
+    div.innerHTML = `<div class="fn">${name}</div><div class="fd">${def}</div><div class="fx">e.g. ${ex}</div>`;
+    flist.appendChild(div);
+    const opt = document.createElement('option');
+    opt.value = name; opt.textContent = name;
+    rebuildEl.appendChild(opt);
+  });
+})();
 
 $('pick').addEventListener('click', () => $('file').click());
 $('clearimg').addEventListener('click', clearImage);
@@ -187,25 +254,31 @@ function clearImage(){
   $('clearimg').style.display = 'none';
 }
 
-const INSTRUCTION = `You are a humor analyst. Take apart the joke, meme, or cartoon provided and reveal how it works — precisely, in plain language, no fluff.
+const FILTER_TAXONOMY = FILTERS.map(([n,d,ex],i) => `${i+1}. ${n} — ${d} (e.g. "${ex}")`).join('\n');
 
-Identify the comic mechanism by name (e.g. incongruity, misdirection, benign violation, rule of three, exaggeration, subversion of expectation, callback, double meaning / pun, malaphor, anti-humor, observational, self-deprecation, irony, absurdism, act-out, comparison, escalation). Name the single primary mechanism, plus a secondary one only if it genuinely drives the laugh.
+const INSTRUCTION = `You are a humor analyst working inside a fixed comedy taxonomy of 11 FILTERS. Take apart the joke, meme, or cartoon provided and reveal how it works — precisely, in plain language, no fluff.
+
+THE 11 FILTERS (classify using ONLY these names):
+${FILTER_TAXONOMY}
+
+Identify the single primary filter that drives the laugh, by its exact name from the list. Add a secondary filter only if one genuinely contributes.
 
 Then abstract the STRUCTURE into a content-neutral, reusable template — the shape of the joke with the specifics stripped out, so it can be refilled with new material. Make it concrete enough to actually build from.
 
-Then write ONE new, original joke that runs on that exact structure — different subject, same bones. Keep it tight. Land the punchline in the final words. Do not reuse the original's topic.
+Then write ONE new, original joke that runs on the requested structure (see the rebuild directive below). Keep it tight. Land the punchline in the final words. Do not reuse the original's topic.
 
-If the piece has no real punchline (e.g. it's observational or a one-panel image gag), say so honestly in that field rather than inventing one. If it carries no message/target, say so.
+If the piece has no real punchline (e.g. observational or a one-panel image gag), say so honestly rather than inventing one. If it carries no message/target, say so.
 
 Respond with ONLY valid JSON, no markdown, no preamble, in exactly this shape:
 {
-  "mechanism": "primary mechanism name (+ secondary if any)",
+  "filter": "primary filter name from the 11 (+ secondary if any)",
   "how_it_works": "1-2 sentences on why the laugh lands",
   "setup": "the setup / premise as it exists in the piece",
   "punchline": "the punchline, or 'None — this is a [type] gag with no distinct punchline' if there isn't one",
   "message": "the underlying point, target, or truth it's poking at — or 'None — pure play, no message' if it's just for the laugh",
   "structure": "the reusable, content-neutral template of this joke's shape",
-  "new_joke": "a new original joke built on that structure",
+  "new_joke": "a new original joke built on the requested filter",
+  "new_joke_filter": "the exact filter name the new joke uses",
   "new_joke_note": "one line mapping the new joke back to the structure"
 }`;
 
@@ -220,15 +293,22 @@ async function run(){
   outEl.innerHTML = '';
   setStatus('<span class="scan">Scanning the mechanism</span>');
 
+  const rebuild = rebuildEl.value;
+  const directive = rebuild === 'same'
+    ? '\n\nREBUILD DIRECTIVE: Build the new joke using the SAME primary filter you identified in the original. Set new_joke_filter to that filter.'
+    : `\n\nREBUILD DIRECTIVE: Build the new joke specifically through the "${rebuild}" filter, even if the original used a different one. Keep the original's structural shape where it still works, but the ${rebuild} mechanism must drive the new laugh. Set new_joke_filter to "${rebuild}".`;
+
+  const fullText = INSTRUCTION + directive;
+
   let content;
   if (imageData){
     const extra = text ? `\n\nExtra context from the user: ${text}` : '';
     content = [
       { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageData } },
-      { type: 'text', text: INSTRUCTION + '\n\nAnalyze the joke/meme/cartoon in the image above.' + extra }
+      { type: 'text', text: fullText + '\n\nAnalyze the joke/meme/cartoon in the image above.' + extra }
     ];
   } else {
-    content = INSTRUCTION + '\n\nHere is the joke/meme/cartoon text:\n"""' + text + '"""';
+    content = fullText + '\n\nHere is the joke/meme/cartoon text:\n"""' + text + '"""';
   }
 
   try {
@@ -270,8 +350,8 @@ function isNone(t){ return t && /^none\b/i.test(t.trim()); }
 
 function render(d){
   let html = '';
-  html += card('mech','Mechanism',
-    `<b>${esc(d.mechanism)}</b><br><span style="color:var(--muted);font-size:15px">${esc(d.how_it_works)}</span>`);
+  html += card('filter','Filter',
+    `<b>${esc(d.filter)}</b><br><span style="color:var(--muted);font-size:15px">${esc(d.how_it_works)}</span>`);
   html += card('setup','Setup', esc(d.setup));
   if (d.punchline && !isNone(d.punchline)) html += card('punch','Punchline', esc(d.punchline));
   else if (d.punchline) html += card('punch','Punchline', `<span style="color:var(--muted)">${esc(d.punchline)}</span>`);
@@ -280,20 +360,41 @@ function render(d){
   html += card('struct','Reusable structure', esc(d.structure));
 
   html += `<div class="newjoke">
-    <div class="k">▶ Next move · new joke, same bones <button class="copy" id="cp">Copy</button></div>
+    <div class="k"><span>▶ Next move · new joke, same bones</span><button class="copy" id="cp">Copy</button></div>
     <div class="joke" id="njoke">${esc(d.new_joke)}</div>
+    ${d.new_joke_filter ? `<div class="njf">Filter · ${esc(d.new_joke_filter)}</div>` : ''}
     ${d.new_joke_note ? `<div class="note">${esc(d.new_joke_note)}</div>` : ''}
+  </div>`;
+
+  html += `<div class="controls">
+    <button class="btn-again" id="again">↻ Run again</button>
+    <button class="btn-new" id="fresh">✕ New teardown</button>
   </div>`;
 
   outEl.innerHTML = html;
   outEl.style.display = 'block';
+
   const cp = $('cp');
   if (cp) cp.addEventListener('click', () => {
     navigator.clipboard.writeText(d.new_joke || '').then(() => {
       cp.textContent = 'Copied'; setTimeout(() => cp.textContent = 'Copy', 1400);
     });
   });
+  $('again').addEventListener('click', run);
+  $('fresh').addEventListener('click', newTeardown);
+
   outEl.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function newTeardown(){
+  srcEl.value = '';
+  clearImage();
+  rebuildEl.value = 'same';
+  outEl.style.display = 'none';
+  outEl.innerHTML = '';
+  setStatus('');
+  window.scrollTo({ top:0, behavior:'smooth' });
+  srcEl.focus();
 }
 
 function card(cls, k, v){
