@@ -132,7 +132,10 @@
   .newjoke .k{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;
       color:var(--magenta);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
   .newjoke .joke{font-family:var(--body);font-size:21px;line-height:1.5;color:#f2f8ff;font-weight:400;}
-  .newjoke .njf{margin-top:10px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);}
+  .newjoke .altjoke{margin-top:14px;padding-top:14px;border-top:1px solid rgba(0,229,255,.14);
+      font-family:var(--body);font-size:17px;line-height:1.5;color:#c7d4e0;}
+  .newjoke .altlbl{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--magenta);margin-right:6px;}
+  .newjoke .njf{margin-top:12px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);}
   .newjoke .note{margin-top:8px;font-size:13.5px;color:var(--muted);line-height:1.5;font-style:italic;}
   .copy{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
       color:var(--cyan);background:transparent;border:1px solid rgba(0,229,255,.3);border-radius:3px;
@@ -265,9 +268,22 @@ Identify the single primary filter that drives the laugh, by its exact name from
 
 Then abstract the STRUCTURE into a content-neutral, reusable template — the shape of the joke with the specifics stripped out, so it can be refilled with new material. Make it concrete enough to actually build from.
 
-Then write ONE new, original joke that runs on the requested structure (see the rebuild directive below). Keep it tight. Land the punchline in the final words. Do not reuse the original's topic.
+Then write new, original jokes that run on the requested structure (see the rebuild directive below).
 
-If the piece has no real punchline (e.g. observational or a one-panel image gag), say so honestly rather than inventing one. If it carries no message/target, say so.
+HARD RULE — NO PARALLELS. You may reuse the STRUCTURE (the shape and mechanism) but you must NOT reuse the original's WORDING. Do not keep the original's punch clause, closing phrase, or any signature words. Reskinning the nouns while keeping the punch phrase (e.g. original "...but my lawyer thinks he can get me five" → "...but my lawyer thinks he can get me nine") is FORBIDDEN — that is a hack parallel, not a new joke. Re-express the entire turn from scratch, in different language, with a different final beat. Before you finalize, check the new joke shares no distinctive phrase with the original; if it does, rewrite it.
+
+CRAFT RULES (this is where the laugh lives):
+- Be specific and concrete. Oddly precise nouns are funnier than generic ones — "a 1998 Camry," "a raccoon," "a dentist" beat "a car," "an animal," "a person." Specificity is the single biggest funniness lever.
+- Economy. Delete every word not carrying the joke. The funniest word comes LAST — nothing trails after the punch.
+- The turn should be surprising but, in hindsight, inevitable. Don't telegraph it, don't explain it, and never explain why it's funny inside the joke.
+- One idea per joke. No stacking two bits into one.
+- Sound matters — a hard-consonant or unexpected final word lands harder than a soft one.
+- Aim for delight, not cruelty. The best version makes the reader feel let in on it, not talked down to. A smile counts as a win, not just a laugh.
+- Keep it tight — under ~20 words unless the form genuinely needs more.
+
+Write the strongest joke as "new_joke", then a SECOND, different rebuild on the same structure — a different subject and a different angle, not a variant of the first — as "alt_joke". Never marry your first punchline; the alt is a real second shot, not a paraphrase.
+
+If the original piece has no real punchline (e.g. observational or a one-panel image gag), say so honestly rather than inventing one. If it carries no message/target, say so.
 
 Respond with ONLY valid JSON, no markdown, no preamble, in exactly this shape:
 {
@@ -277,7 +293,8 @@ Respond with ONLY valid JSON, no markdown, no preamble, in exactly this shape:
   "punchline": "the punchline, or 'None — this is a [type] gag with no distinct punchline' if there isn't one",
   "message": "the underlying point, target, or truth it's poking at — or 'None — pure play, no message' if it's just for the laugh",
   "structure": "the reusable, content-neutral template of this joke's shape",
-  "new_joke": "a new original joke built on the requested filter",
+  "new_joke": "the strongest new original joke built on the requested filter — shares NO wording with the original",
+  "alt_joke": "a second, different rebuild on the same structure — different subject and angle from new_joke",
   "new_joke_filter": "the exact filter name the new joke uses",
   "new_joke_note": "one line mapping the new joke back to the structure"
 }`;
@@ -362,6 +379,7 @@ function render(d){
   html += `<div class="newjoke">
     <div class="k"><span>▶ Next move · new joke, same bones</span><button class="copy" id="cp">Copy</button></div>
     <div class="joke" id="njoke">${esc(d.new_joke)}</div>
+    ${d.alt_joke ? `<div class="altjoke"><span class="altlbl">Or:</span> ${esc(d.alt_joke)}</div>` : ''}
     ${d.new_joke_filter ? `<div class="njf">Filter · ${esc(d.new_joke_filter)}</div>` : ''}
     ${d.new_joke_note ? `<div class="note">${esc(d.new_joke_note)}</div>` : ''}
   </div>`;
