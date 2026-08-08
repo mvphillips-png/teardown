@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=Exo+2:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
   :root{
     --bg:#04060a;
@@ -149,6 +151,30 @@
   .btn-again:hover{background:rgba(34,255,167,.1);box-shadow:0 0 16px rgba(34,255,167,.25);}
   .btn-new{color:var(--magenta);background:transparent;border:1px solid rgba(255,47,208,.5);}
   .btn-new:hover{background:rgba(255,47,208,.1);box-shadow:0 0 16px rgba(255,47,208,.25);}
+  .btn-snap{color:var(--amber);background:transparent;border:1px solid rgba(255,176,0,.5);}
+  .btn-snap:hover{background:rgba(255,176,0,.1);box-shadow:0 0 16px rgba(255,176,0,.25);}
+  .btn-snap:disabled{opacity:.5;cursor:wait;}
+
+  #snapshot{position:absolute;left:-99999px;top:0;width:820px;background:#04060a;padding:38px;
+      color:var(--text);font-family:var(--body);
+      background-image:linear-gradient(rgba(0,229,255,.035) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(0,229,255,.035) 1px,transparent 1px);
+      background-size:44px 44px;}
+  #snapshot .card,#snapshot .newjoke{animation:none !important;opacity:1 !important;transform:none !important;}
+  #snapshot .copy{display:none;}
+  #snapshot .snaphead{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px;
+      display:flex;justify-content:space-between;align-items:flex-end;}
+  #snapshot .snaptitle{font-family:var(--head);font-weight:900;font-size:38px;color:#eaf6ff;letter-spacing:.05em;
+      text-shadow:0 0 18px rgba(0,229,255,.25);}
+  #snapshot .snaptag{font-family:var(--mono);font-size:10px;letter-spacing:.3em;color:var(--cyan);text-transform:uppercase;}
+  #snapshot .snapmeta{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);text-align:right;}
+  #snapshot .snapsrc{background:#020407;border:1px solid var(--line);border-left:3px solid var(--amber);
+      border-radius:4px;padding:15px 18px;margin-bottom:18px;}
+  #snapshot .snapsrc .k{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);margin-bottom:7px;}
+  #snapshot .snapsrc .v{font-size:16px;line-height:1.5;color:var(--text);}
+  #snapshot img.srcimg{max-width:100%;max-height:260px;border:1px solid var(--line);border-radius:3px;margin-top:8px;display:block;}
+  #snapshot .snapfoot{margin-top:26px;padding-top:14px;border-top:1px solid var(--line);
+      font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#33404d;text-align:center;}
 
   footer{margin-top:44px;text-align:center;font-family:var(--mono);font-size:11px;letter-spacing:.18em;
       color:#33404d;text-transform:uppercase;}
@@ -157,9 +183,9 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="tag">GF · Humor Instrument</div>
+    <div class="tag">Kan-of-Worms · Reverse Engine</div>
     <h1>TEARDOWN</h1>
-    <div class="sub">An x-ray for jokes. Paste or upload a joke, meme, or cartoon — get the filter, the setup, the punchline, the message, and the <b>reusable structure</b>. Then a new joke built on the same bones.</div>
+    <div class="sub">The Idiomator builds jokes. <b>TEARDOWN</b> takes them apart. Paste or upload a joke, meme, or cartoon — get the mechanism, setup, punchline, message, and the <b>reusable structure</b>, then a new joke built on the same bones.</div>
   </header>
 
   <details class="filters">
@@ -214,6 +240,9 @@ const FILTERS = [
 
 let imageData = null;
 let mediaType = null;
+let lastData = null;
+let lastSource = '';
+let lastImageUrl = null;
 
 const $ = id => document.getElementById(id);
 const srcEl = $('src'), statusEl = $('status'), outEl = $('out'), goEl = $('go'), rebuildEl = $('rebuild');
@@ -317,6 +346,9 @@ async function run(){
 
   const fullText = INSTRUCTION + directive;
 
+  lastSource = text;
+  lastImageUrl = imageData ? ('data:' + mediaType + ';base64,' + imageData) : null;
+
   let content;
   if (imageData){
     const extra = text ? `\n\nExtra context from the user: ${text}` : '';
@@ -365,7 +397,7 @@ function parseJSON(raw){
 function esc(t){ const d = document.createElement('div'); d.textContent = t == null ? '' : t; return d.innerHTML; }
 function isNone(t){ return t && /^none\b/i.test(t.trim()); }
 
-function render(d){
+function resultCardsHTML(d){
   let html = '';
   html += card('filter','Filter',
     `<b>${esc(d.filter)}</b><br><span style="color:var(--muted);font-size:15px">${esc(d.how_it_works)}</span>`);
@@ -383,9 +415,16 @@ function render(d){
     ${d.new_joke_filter ? `<div class="njf">Filter · ${esc(d.new_joke_filter)}</div>` : ''}
     ${d.new_joke_note ? `<div class="note">${esc(d.new_joke_note)}</div>` : ''}
   </div>`;
+  return html;
+}
+
+function render(d){
+  lastData = d;
+  let html = resultCardsHTML(d);
 
   html += `<div class="controls">
     <button class="btn-again" id="again">↻ Run again</button>
+    <button class="btn-snap" id="snap">⭳ Snapshot PDF</button>
     <button class="btn-new" id="fresh">✕ New teardown</button>
   </div>`;
 
@@ -400,8 +439,64 @@ function render(d){
   });
   $('again').addEventListener('click', run);
   $('fresh').addEventListener('click', newTeardown);
+  $('snap').addEventListener('click', snapshot);
 
   outEl.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function stamp(){
+  const p = n => String(n).padStart(2,'0');
+  const t = new Date();
+  return `${t.getFullYear()}-${p(t.getMonth()+1)}-${p(t.getDate())}-${p(t.getHours())}${p(t.getMinutes())}`;
+}
+
+function prettyStamp(){
+  return new Date().toLocaleString([], { year:'numeric', month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function snapshotInner(d){
+  const srcBlock = lastImageUrl
+    ? `<div class="snapsrc"><div class="k">Source · image</div>${lastSource ? `<div class="v">${esc(lastSource)}</div>` : ''}<img class="srcimg" src="${lastImageUrl}" alt="source"></div>`
+    : `<div class="snapsrc"><div class="k">Source</div><div class="v">${esc(lastSource)}</div></div>`;
+  return `<div class="snaphead">
+      <div><div class="snaptag">GF · Humor Instrument</div><div class="snaptitle">TEARDOWN</div></div>
+      <div class="snapmeta">${esc(prettyStamp())}</div>
+    </div>
+    ${srcBlock}
+    ${resultCardsHTML(d)}
+    <div class="snapfoot">Quirky Flash Chronicles · Gravificer System</div>`;
+}
+
+async function snapshot(){
+  if (!lastData) return;
+  const btn = $('snap');
+  const haveLibs = (typeof html2canvas !== 'undefined') && window.jspdf && window.jspdf.jsPDF;
+  if (!haveLibs){ window.print(); return; }
+
+  const old = btn.textContent;
+  btn.disabled = true; btn.textContent = '… building';
+
+  const node = document.createElement('div');
+  node.id = 'snapshot';
+  node.innerHTML = snapshotInner(lastData);
+  document.body.appendChild(node);
+
+  try {
+    await new Promise(r => setTimeout(r, 80));
+    const canvas = await html2canvas(node, { scale:2, backgroundColor:'#04060a', useCORS:true, logging:false });
+    const img = canvas.toDataURL('image/png');
+    const w = canvas.width / 2, h = canvas.height / 2;
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: h >= w ? 'p' : 'l', unit:'px', format:[w, h] });
+    pdf.addImage(img, 'PNG', 0, 0, w, h);
+    pdf.save('teardown-' + stamp() + '.pdf');
+  } catch (e){
+    setStatus('Snapshot failed: ' + e.message + ' — try the browser print dialog instead.', true);
+    window.print();
+  } finally {
+    node.remove();
+    btn.disabled = false; btn.textContent = old;
+  }
 }
 
 function newTeardown(){
