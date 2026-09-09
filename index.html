@@ -280,6 +280,7 @@ let mediaType = null;
 let lastData = null;
 let lastSource = '';
 let lastImageUrl = null;
+let puHistory = [];
 
 const $ = id => document.getElementById(id);
 const srcEl = $('src'), statusEl = $('status'), outEl = $('out'), goEl = $('go'), rebuildEl = $('rebuild');
@@ -554,6 +555,7 @@ function punchupMyJoke(){
   outEl.style.display = 'block';
   wirePunchup();
   $('pu-src').value = joke;
+  puHistory = [joke];
   outEl.scrollIntoView({ behavior:'smooth', block:'start' });
   puRun();
 }
@@ -562,6 +564,7 @@ function openPunchup(jokeText){
   const panel = $('punchup');
   if (!panel) return;
   $('pu-src').value = jokeText || '';
+  puHistory = [jokeText || ''];
   $('pu-dir').value = '';
   $('pu-out').innerHTML = '';
   puSetStatus('');
@@ -569,7 +572,7 @@ function openPunchup(jokeText){
   panel.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
-async function puRun(){
+async function puRun(iterate){
   const joke = $('pu-src').value.trim();
   const dir = $('pu-dir').value.trim();
   if (!joke){ puSetStatus('Paste the joke to sharpen first.', true); return; }
@@ -581,6 +584,15 @@ async function puRun(){
 
   let user = PUNCHUP_PROMPT + '\n\nThe joke to punch up:\n"""' + joke + '"""';
   if (dir) user += '\n\nUser direction: ' + dir;
+
+  const tried = puHistory.filter(j => j && j.trim() && j.trim() !== joke.trim());
+  if (tried.length){
+    user += '\n\nALREADY TRIED — do not return any of these, or a trivial rewording of them. Every new variant must be meaningfully different and closer to landing:\n'
+      + tried.slice(-12).map(j => '- ' + j).join('\n');
+  }
+  if (iterate){
+    user += '\n\nITERATION MODE: the joke above is itself an earlier punch-up. Keep everything that already works and change ONLY the part still holding it back — usually the final beat or a single soft word. Do NOT restart from a new premise or swap the subject. All four variants must be tight refinements of THIS exact joke, ordered best first.';
+  }
 
   try {
     const res = await fetch(WORKER, {
@@ -622,6 +634,8 @@ function puRender(d){
   });
   const out = $('pu-out');
   out.innerHTML = html;
+  (d.variants || []).forEach(v => { if (v && v.joke) puHistory.push(v.joke); });
+  if (puHistory.length > 40) puHistory = puHistory.slice(-40);
   out.querySelectorAll('.pu-copy').forEach(btn => {
     btn.addEventListener('click', () => {
       const v = (d.variants[+btn.dataset.i] || {}).joke || '';
@@ -635,7 +649,7 @@ function puRender(d){
       const v = (d.variants[+btn.dataset.i] || {}).joke || '';
       $('pu-src').value = v;
       $('punchup').scrollIntoView({ behavior:'smooth', block:'start' });
-      puRun();
+      puRun(true);
     });
   });
 }
@@ -709,7 +723,7 @@ function newTeardown(){
   outEl.style.display = 'none';
   outEl.innerHTML = '';
   setStatus('');
-  window.scrollTo({ top:0, behavior:'smooth' });
+  puHistory = [];
   srcEl.focus();
 }
 
