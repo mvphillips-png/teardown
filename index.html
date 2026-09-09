@@ -144,6 +144,39 @@
       padding:6px 11px;cursor:pointer;transition:.15s;white-space:nowrap;}
   .copy:hover{background:rgba(0,229,255,.1);}
 
+  /* PUNCH-UP — sharpen a joke you like */
+  .punch-trigger{margin-top:12px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+      text-transform:uppercase;color:var(--magenta);background:transparent;border:1px solid rgba(255,47,208,.4);
+      border-radius:3px;padding:8px 13px;cursor:pointer;transition:.15s;}
+  .punch-trigger:hover{background:rgba(255,47,208,.1);box-shadow:0 0 14px rgba(255,47,208,.22);}
+
+  .punchup{margin-top:20px;background:linear-gradient(180deg,rgba(255,47,208,.06),rgba(0,229,255,.04));
+      border:1px solid rgba(255,47,208,.34);border-left:3px solid var(--magenta);border-radius:4px;
+      padding:22px;display:none;animation:rise .35s ease both;}
+  .punchup .puh{font-family:var(--mono);font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--magenta);margin-bottom:4px;}
+  .punchup .pusub{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:16px;}
+  .punchup label{display:block;font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin:0 0 7px;}
+  #pu-src{width:100%;min-height:64px;background:#020407;border:1px solid rgba(255,47,208,.24);border-radius:3px;
+      color:var(--text);font-family:var(--body);font-size:16px;line-height:1.5;padding:12px;resize:vertical;outline:none;transition:border-color .18s;}
+  #pu-src:focus{border-color:var(--magenta);}
+  #pu-dir{width:100%;background:#020407;border:1px solid rgba(0,229,255,.18);border-radius:3px;color:var(--text);
+      font-family:var(--body);font-size:14.5px;padding:11px 12px;outline:none;margin-top:12px;transition:border-color .18s;}
+  #pu-dir:focus{border-color:var(--cyan);}
+  #pu-src::placeholder,#pu-dir::placeholder{color:#3f4c5a;}
+  #pu-go{margin-top:14px;width:100%;font-family:var(--head);font-weight:700;font-size:15px;letter-spacing:.18em;
+      text-transform:uppercase;color:#020407;background:var(--magenta);border:none;border-radius:3px;padding:14px;cursor:pointer;
+      transition:.18s;box-shadow:0 0 16px rgba(255,47,208,.3);}
+  #pu-go:hover{background:#ff6fe0;box-shadow:0 0 24px rgba(255,47,208,.48);}
+  #pu-go:disabled{opacity:.4;cursor:wait;box-shadow:none;}
+  #pu-status{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-top:13px;min-height:15px;text-align:center;}
+  #pu-status.err{color:#ff5470;}
+  #pu-out{margin-top:18px;}
+  .pu-diag{font-family:var(--mono);font-size:12.5px;line-height:1.6;color:#ffce6a;border-left:2px solid var(--amber);padding:2px 0 2px 12px;margin-bottom:16px;}
+  .pu-var{background:#070b12;border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:4px;padding:15px 17px;margin-bottom:11px;animation:rise .35s ease both;}
+  .pu-var .pvk{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
+  .pu-var .pvj{font-family:var(--body);font-size:18px;line-height:1.5;color:#f2f8ff;}
+  .pu-var .pvn{margin-top:9px;font-size:13px;color:var(--muted);line-height:1.5;font-style:italic;}
+
   .controls{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;}
   .controls button{flex:1;min-width:180px;font-family:var(--head);font-weight:700;font-size:13px;
       letter-spacing:.16em;text-transform:uppercase;padding:14px;border-radius:3px;cursor:pointer;transition:.18s;}
@@ -161,7 +194,7 @@
         linear-gradient(90deg,rgba(0,229,255,.035) 1px,transparent 1px);
       background-size:44px 44px;}
   #snapshot .card,#snapshot .newjoke{animation:none !important;opacity:1 !important;transform:none !important;}
-  #snapshot .copy{display:none;}
+  #snapshot .copy,#snapshot .punch-trigger,#snapshot .punchup{display:none !important;}
   #snapshot .snaphead{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:20px;
       display:flex;justify-content:space-between;align-items:flex-end;}
   #snapshot .snaptitle{font-family:var(--head);font-weight:900;font-size:38px;color:#eaf6ff;letter-spacing:.05em;
@@ -328,6 +361,28 @@ Respond with ONLY valid JSON, no markdown, no preamble, in exactly this shape:
   "new_joke_note": "one line mapping the new joke back to the structure"
 }`;
 
+const PUNCHUP_PROMPT = `You are a joke doctor in a comedy writers' room. The user has a joke that already works but isn't landing perfectly. Punch it up — keep the core idea and comedic structure, sharpen the execution. This is a REFINEMENT, not a rewrite: do not invent a different joke, and do not throw out what already works.
+
+Sharpen using these craft rules:
+- Be specific and concrete. Oddly precise nouns are funnier than generic ones ("a 1998 Camry," "a raccoon," "a dentist" beat "a car," "an animal," "a person"). Specificity is the single biggest funniness lever.
+- Economy. Delete every word not carrying the joke. The funniest word comes LAST — nothing trails after the punch.
+- Surprising but, in hindsight, inevitable. Don't telegraph the turn, and never explain why it's funny inside the joke.
+- One idea per joke.
+- Sound matters — a hard-consonant or unexpected final word lands harder than a soft one.
+- Delight, not cruelty — let the reader in on it.
+- Keep it tight, under ~20 words unless the form genuinely needs more.
+
+If the user gives a direction, follow it above all else. If not, spread the four variants across DIFFERENT dials: e.g. one tighter, one with a sharper final word, one with a bigger or more specific escalation, one with a darker or more unexpected turn. Each variant must be a real alternative, not a paraphrase of another.
+
+Respond with ONLY valid JSON, no markdown, no preamble, in exactly this shape:
+{
+  "diagnosis": "one line: what is slightly holding the current version back",
+  "variants": [
+    {"label": "2-4 word tweak angle", "joke": "the punched-up joke", "note": "one line on what changed and why it lands harder"}
+  ]
+}
+Give exactly 4 variants.`;
+
 async function run(){
   const text = srcEl.value.trim();
   if (!text && !imageData){
@@ -411,7 +466,9 @@ function resultCardsHTML(d){
   html += `<div class="newjoke">
     <div class="k"><span>▶ Next move · new joke, same bones</span><button class="copy" id="cp">Copy</button></div>
     <div class="joke" id="njoke">${esc(d.new_joke)}</div>
-    ${d.alt_joke ? `<div class="altjoke"><span class="altlbl">Or:</span> ${esc(d.alt_joke)}</div>` : ''}
+    <button class="punch-trigger" data-which="main">▸ Punch this up</button>
+    ${d.alt_joke ? `<div class="altjoke"><span class="altlbl">Or:</span> ${esc(d.alt_joke)}</div>
+    <button class="punch-trigger" data-which="alt">▸ Punch up the alt</button>` : ''}
     ${d.new_joke_filter ? `<div class="njf">Filter · ${esc(d.new_joke_filter)}</div>` : ''}
     ${d.new_joke_note ? `<div class="note">${esc(d.new_joke_note)}</div>` : ''}
   </div>`;
@@ -421,6 +478,18 @@ function resultCardsHTML(d){
 function render(d){
   lastData = d;
   let html = resultCardsHTML(d);
+
+  html += `<div class="punchup" id="punchup">
+    <div class="puh">▶ Punch-Up · same joke, sharper landing</div>
+    <div class="pusub">Keep the bones. Fix the finish.</div>
+    <label for="pu-src">The joke</label>
+    <textarea id="pu-src"></textarea>
+    <label for="pu-dir" style="margin-top:12px">Optional · what feels off?</label>
+    <input id="pu-dir" type="text" placeholder="e.g. the number feels weak · darker ending · tighter · stronger final word">
+    <button id="pu-go">Punch it up</button>
+    <div id="pu-status"></div>
+    <div id="pu-out"></div>
+  </div>`;
 
   html += `<div class="controls">
     <button class="btn-again" id="again">↻ Run again</button>
@@ -437,6 +506,18 @@ function render(d){
       cp.textContent = 'Copied'; setTimeout(() => cp.textContent = 'Copy', 1400);
     });
   });
+
+  outEl.querySelectorAll('.punch-trigger').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const joke = btn.dataset.which === 'alt' ? lastData.alt_joke : lastData.new_joke;
+      openPunchup(joke);
+    });
+  });
+  $('pu-go').addEventListener('click', puRun);
+  $('pu-src').addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') puRun();
+  });
+
   $('again').addEventListener('click', run);
   $('fresh').addEventListener('click', newTeardown);
   $('snap').addEventListener('click', snapshot);
@@ -444,6 +525,86 @@ function render(d){
   outEl.scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
+/* ---------- PUNCH-UP ---------- */
+function openPunchup(jokeText){
+  const panel = $('punchup');
+  if (!panel) return;
+  $('pu-src').value = jokeText || '';
+  $('pu-dir').value = '';
+  $('pu-out').innerHTML = '';
+  puSetStatus('');
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+async function puRun(){
+  const joke = $('pu-src').value.trim();
+  const dir = $('pu-dir').value.trim();
+  if (!joke){ puSetStatus('Paste the joke to sharpen first.', true); return; }
+
+  const btn = $('pu-go');
+  btn.disabled = true;
+  $('pu-out').innerHTML = '';
+  puSetStatus('<span class="scan">Working the room</span>');
+
+  let user = PUNCHUP_PROMPT + '\n\nThe joke to punch up:\n"""' + joke + '"""';
+  if (dir) user += '\n\nUser direction: ' + dir;
+
+  try {
+    const res = await fetch(WORKER, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: MODEL,
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: user }]
+      })
+    });
+    if (!res.ok) throw new Error('Worker returned ' + res.status);
+    const data = await res.json();
+    const raw = (data.content || [])
+      .filter(b => b.type === 'text')
+      .map(b => b.text).join('\n').trim();
+    const parsed = parseJSON(raw);
+    if (!parsed || !parsed.variants) throw new Error('Could not parse the response.');
+    puRender(parsed);
+    puSetStatus('');
+  } catch (err){
+    puSetStatus('Error: ' + err.message + ' — try again.', true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function puRender(d){
+  let html = '';
+  if (d.diagnosis) html += `<div class="pu-diag">${esc(d.diagnosis)}</div>`;
+  (d.variants || []).forEach((v, i) => {
+    html += `<div class="pu-var" style="animation-delay:${i * 0.05}s">
+      <div class="pvk"><span>${esc(v.label || ('Variant ' + (i+1)))}</span><button class="copy pu-copy" data-i="${i}">Copy</button></div>
+      <div class="pvj">${esc(v.joke)}</div>
+      ${v.note ? `<div class="pvn">${esc(v.note)}</div>` : ''}
+    </div>`;
+  });
+  const out = $('pu-out');
+  out.innerHTML = html;
+  out.querySelectorAll('.pu-copy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = (d.variants[+btn.dataset.i] || {}).joke || '';
+      navigator.clipboard.writeText(v).then(() => {
+        btn.textContent = 'Copied'; setTimeout(() => btn.textContent = 'Copy', 1300);
+      });
+    });
+  });
+}
+
+function puSetStatus(msg, isErr){
+  const el = $('pu-status');
+  el.innerHTML = msg;
+  el.className = isErr ? 'err' : '';
+}
+
+/* ---------- SNAPSHOT / CONTROLS ---------- */
 function stamp(){
   const p = n => String(n).padStart(2,'0');
   const t = new Date();
