@@ -99,6 +99,8 @@
       padding:15px;cursor:pointer;transition:.18s;box-shadow:0 0 18px rgba(0,229,255,.32);}
   .go:hover{background:#5cf0ff;box-shadow:0 0 26px rgba(0,229,255,.5);}
   .go:disabled{opacity:.4;cursor:wait;box-shadow:none;}
+  .go-alt{margin-top:12px;background:transparent;color:var(--magenta);border:1px solid rgba(255,47,208,.55);box-shadow:none;}
+  .go-alt:hover{background:rgba(255,47,208,.1);box-shadow:0 0 20px rgba(255,47,208,.3);}
 
   .status{font-family:var(--mono);font-size:12px;letter-spacing:.14em;color:var(--amber);
       text-transform:uppercase;margin-top:16px;min-height:16px;text-align:center;}
@@ -176,6 +178,7 @@
   .pu-var .pvk{font-family:var(--mono);font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:10px;}
   .pu-var .pvj{font-family:var(--body);font-size:18px;line-height:1.5;color:#f2f8ff;}
   .pu-var .pvn{margin-top:9px;font-size:13px;color:var(--muted);line-height:1.5;font-style:italic;}
+  .pu-var .pvbtns{display:flex;gap:6px;}
 
   .controls{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;}
   .controls button{flex:1;min-width:180px;font-family:var(--head);font-weight:700;font-size:13px;
@@ -245,6 +248,7 @@
     </div>
 
     <button class="go" id="go">Run teardown</button>
+    <button class="go go-alt" id="punchmine">✦ Punch up my own joke instead</button>
     <div class="status" id="status"></div>
   </div>
 
@@ -479,17 +483,7 @@ function render(d){
   lastData = d;
   let html = resultCardsHTML(d);
 
-  html += `<div class="punchup" id="punchup">
-    <div class="puh">▶ Punch-Up · same joke, sharper landing</div>
-    <div class="pusub">Keep the bones. Fix the finish.</div>
-    <label for="pu-src">The joke</label>
-    <textarea id="pu-src"></textarea>
-    <label for="pu-dir" style="margin-top:12px">Optional · what feels off?</label>
-    <input id="pu-dir" type="text" placeholder="e.g. the number feels weak · darker ending · tighter · stronger final word">
-    <button id="pu-go">Punch it up</button>
-    <div id="pu-status"></div>
-    <div id="pu-out"></div>
-  </div>`;
+  html += buildPunchupPanel(false);
 
   html += `<div class="controls">
     <button class="btn-again" id="again">↻ Run again</button>
@@ -513,10 +507,7 @@ function render(d){
       openPunchup(joke);
     });
   });
-  $('pu-go').addEventListener('click', puRun);
-  $('pu-src').addEventListener('keydown', e => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') puRun();
-  });
+  wirePunchup();
 
   $('again').addEventListener('click', run);
   $('fresh').addEventListener('click', newTeardown);
@@ -526,6 +517,47 @@ function render(d){
 }
 
 /* ---------- PUNCH-UP ---------- */
+function buildPunchupPanel(standalone){
+  const disp = standalone ? ' style="display:block"' : '';
+  const sub = standalone
+    ? 'Your own joke, sharpened. Hit ↻ Again on any line to push it further.'
+    : 'Keep the bones. Fix the finish.';
+  return `<div class="punchup" id="punchup"${disp}>
+    <div class="puh">▶ Punch-Up · same joke, sharper landing</div>
+    <div class="pusub">${sub}</div>
+    <label for="pu-src">The joke</label>
+    <textarea id="pu-src"></textarea>
+    <label for="pu-dir" style="margin-top:12px">Optional · what feels off?</label>
+    <input id="pu-dir" type="text" placeholder="e.g. the number feels weak · darker ending · tighter · stronger final word">
+    <button id="pu-go">Punch it up</button>
+    <div id="pu-status"></div>
+    <div id="pu-out"></div>
+    ${standalone ? '<button class="btn-new" id="pu-clear" style="margin-top:16px;width:100%;font-family:var(--head);font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;padding:12px;border-radius:3px;cursor:pointer;">✕ Clear</button>' : ''}
+  </div>`;
+}
+
+function wirePunchup(){
+  const go = $('pu-go');
+  if (!go) return;
+  go.addEventListener('click', puRun);
+  $('pu-src').addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') puRun();
+  });
+  const clr = $('pu-clear');
+  if (clr) clr.addEventListener('click', newTeardown);
+}
+
+function punchupMyJoke(){
+  const joke = srcEl.value.trim();
+  if (!joke){ setStatus('Write your own joke in the box above first.', true); return; }
+  outEl.innerHTML = buildPunchupPanel(true);
+  outEl.style.display = 'block';
+  wirePunchup();
+  $('pu-src').value = joke;
+  outEl.scrollIntoView({ behavior:'smooth', block:'start' });
+  puRun();
+}
+
 function openPunchup(jokeText){
   const panel = $('punchup');
   if (!panel) return;
@@ -581,7 +613,9 @@ function puRender(d){
   if (d.diagnosis) html += `<div class="pu-diag">${esc(d.diagnosis)}</div>`;
   (d.variants || []).forEach((v, i) => {
     html += `<div class="pu-var" style="animation-delay:${i * 0.05}s">
-      <div class="pvk"><span>${esc(v.label || ('Variant ' + (i+1)))}</span><button class="copy pu-copy" data-i="${i}">Copy</button></div>
+      <div class="pvk"><span>${esc(v.label || ('Variant ' + (i+1)))}</span>
+        <span class="pvbtns"><button class="copy pu-again" data-i="${i}">↻ Again</button><button class="copy pu-copy" data-i="${i}">Copy</button></span>
+      </div>
       <div class="pvj">${esc(v.joke)}</div>
       ${v.note ? `<div class="pvn">${esc(v.note)}</div>` : ''}
     </div>`;
@@ -594,6 +628,14 @@ function puRender(d){
       navigator.clipboard.writeText(v).then(() => {
         btn.textContent = 'Copied'; setTimeout(() => btn.textContent = 'Copy', 1300);
       });
+    });
+  });
+  out.querySelectorAll('.pu-again').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const v = (d.variants[+btn.dataset.i] || {}).joke || '';
+      $('pu-src').value = v;
+      $('punchup').scrollIntoView({ behavior:'smooth', block:'start' });
+      puRun();
     });
   });
 }
@@ -681,6 +723,7 @@ function setStatus(msg, isErr){
 }
 
 goEl.addEventListener('click', run);
+$('punchmine').addEventListener('click', punchupMyJoke);
 srcEl.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') run();
 });
